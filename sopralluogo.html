@@ -1724,6 +1724,20 @@ function collectData() {
     else if (el.type === 'checkbox') { /* handled via togStates or checkbox-item */ }
     else { data[el.name] = el.value; }
   });
+  // Foto in base64
+  var fotoPrivacy = document.getElementById('foto-privacy');
+  var fotoCantiere1 = document.getElementById('foto-cantiere1');
+  var fotoCantiere2 = document.getElementById('foto-cantiere2');
+
+  function readFileAsBase64(input) {
+    return new Promise(function(resolve) {
+      if (!input.files || !input.files[0]) { resolve(''); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) { resolve(e.target.result); };
+      reader.readAsDataURL(input.files[0]);
+    });
+  }
+
   // Fasi selezionate
   const fasiSel = [];
   document.querySelectorAll('#fasi-group .checkbox-item.checked input').forEach(i => fasiSel.push(i.value));
@@ -1758,7 +1772,33 @@ async function submitForm() {
   spinner.style.display = 'block';
   successMsg.style.display = 'none';
 
+  // Raccoglie foto in base64
+  var fotoPrivacyData = '';
+  var fotoCantiere1Data = '';
+  var fotoCantiere2Data = '';
+
+  var fp = document.getElementById('foto-privacy');
+  var fc1 = document.getElementById('foto-cantiere1');
+  var fc2 = document.getElementById('foto-cantiere2');
+
+  function leggiFile(input) {
+    return new Promise(function(resolve) {
+      if (!input || !input.files || !input.files[0]) { resolve(''); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) { resolve(e.target.result); };
+      reader.readAsDataURL(input.files[0]);
+    });
+  }
+
+  var risultati = await Promise.all([leggiFile(fp), leggiFile(fc1), leggiFile(fc2)]);
+  fotoPrivacyData   = risultati[0];
+  fotoCantiere1Data = risultati[1];
+  fotoCantiere2Data = risultati[2];
+
   const payload = collectData();
+  payload['foto_privacy']   = fotoPrivacyData;
+  payload['foto_cantiere1'] = fotoCantiere1Data;
+  payload['foto_cantiere2'] = fotoCantiere2Data;
 
   try {
     if (SCRIPT_URL === 'INSERISCI_QUI_URL_APPS_SCRIPT') {
