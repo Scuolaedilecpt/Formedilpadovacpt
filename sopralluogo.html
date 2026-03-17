@@ -1717,7 +1717,7 @@ function updateProgress() {
 document.addEventListener('input', updateProgress);
 
 // ==================== SUBMIT ====================
-const SCRIPT_URL = 'INSERISCI_QUI_URL_APPS_SCRIPT'; // DA CONFIGURARE
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP2FvCyxrS03kUwZS1zNyy4bI-_XNe-vmUp8A6Xeze6uz2ljkioqUEnyIlwpkiZvI9vA/exec';
 
 function collectData() {
   const data = {};
@@ -1803,26 +1803,20 @@ async function submitForm() {
   payload['foto_cantiere2'] = fotoCantiere2Data;
 
   try {
-    if (SCRIPT_URL === 'INSERISCI_QUI_URL_APPS_SCRIPT') {
-      // DEMO MODE
-      await new Promise(r => setTimeout(r, 1500));
-      console.log('DATI DA INVIARE:', payload);
+    {
+      // Apps Script richiede no-cors + FormData
+      var formData = new FormData();
+      formData.append('data', JSON.stringify(payload));
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload),
+      });
+      // Con no-cors non possiamo leggere la risposta, ma se non lancia errori è OK
       spinner.style.display = 'none';
       successMsg.style.display = 'block';
       btn.textContent = '✓ INVIATO';
       btn.style.background = 'var(--verde)';
-    } else {
-      const resp = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      const result = await resp.json();
-      spinner.style.display = 'none';
-      if (result.status === 'ok') {
-        successMsg.style.display = 'block';
-        btn.textContent = '✓ INVIATO';
-        btn.style.background = 'var(--verde)';
-      } else { throw new Error(result.message); }
     }
   } catch(err) {
     spinner.style.display = 'none';
