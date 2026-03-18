@@ -457,6 +457,24 @@ body {
 .cf-ok  { color: var(--verde-dark); }
 .cf-err { color: var(--nc-plus); }
 
+
+/* BOTTONE SALVA EXCEL */
+.btn-excel {
+  background: linear-gradient(135deg, #1d6f42, #157347);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 32px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(29,111,66,0.35);
+  transition: all 0.2s;
+  display: none;
+}
+.btn-excel:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(29,111,66,0.45); }
+
 /* FOTO UPLOAD */
 .foto-upload-box {
   border: 2px dashed var(--bordo);
@@ -1262,6 +1280,7 @@ body {
       </button>
       </div>
       <div class="spinner" id="spinner"></div>
+      <button class="btn-excel" id="btn-salva-excel" onclick="salvaManualeExcel()">📥 SALVA EXCEL</button>
       <div class="success-msg" id="success-msg">
         ✅ Rapporto inviato correttamente al foglio Google!<br>
         <small>I dati sono stati registrati con successo.</small>
@@ -1343,7 +1362,8 @@ const checklistData2 = {
   },
 };
 
-const togStates = {}; // key: "sectionCode|voce" => "verif"|"ncplus"|"ncminus"|"oss"|"na"|null
+const togStates = {};
+var _lastPayload = null; // conserva ultimo payload per salvataggio Excel manuale // key: "sectionCode|voce" => "verif"|"ncplus"|"ncminus"|"oss"|"na"|null
 
 // ==================== FASI LAVORAZIONE ====================
 const faseLavori = [
@@ -1816,8 +1836,10 @@ async function submitForm() {
   payload['foto_cantiere1'] = fotoCantiere1Data;
   payload['foto_cantiere2'] = fotoCantiere2Data;
 
-  // Salva Excel SUBITO prima dell'invio — sempre garantito
-  esportaExcel(payload);
+  // Salva payload globalmente (per bottone manuale)
+  _lastPayload = payload;
+  // Tenta salvataggio Excel automatico
+  try { esportaExcel(payload); } catch(exErr) { console.warn("Export Excel auto fallito:", exErr); }
 
   try {
     {
@@ -1834,6 +1856,7 @@ async function submitForm() {
       successMsg.style.display = 'block';
       btn.textContent = '✓ INVIATO';
       btn.style.background = 'var(--verde)';
+      document.getElementById('btn-salva-excel').style.display = 'inline-block';
     }
   } catch(err) {
     spinner.style.display = 'none';
@@ -2027,6 +2050,17 @@ function ripopolaForm(dati) {
 
 
 // ========== PULISCI FORM ==========
+
+function salvaManualeExcel() {
+  if (_lastPayload) {
+    esportaExcel(_lastPayload);
+  } else {
+    // Nessun invio precedente - raccoglie dati correnti
+    var p = collectData();
+    esportaExcel(p);
+  }
+}
+
 function pulisciForm() {
   if (!confirm('Cancellare tutti i dati inseriti?')) return;
   document.querySelectorAll('.field-input, .field-select, .field-textarea, .note-inline').forEach(function(el) { el.value = ''; });
@@ -2051,6 +2085,8 @@ function pulisciForm() {
   var btn = document.querySelector('.btn-submit');
   if (btn) { btn.disabled = false; btn.textContent = '\u25b6 INVIA RAPPORTO DI SOPRALLUOGO'; btn.style.background = ''; }
   document.getElementById('success-msg').style.display = 'none';
+  var btnExcel = document.getElementById('btn-salva-excel'); if(btnExcel) btnExcel.style.display = 'none';
+  _lastPayload = null;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   updateProgress();
 }
