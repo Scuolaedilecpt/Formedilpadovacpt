@@ -1256,6 +1256,7 @@ body {
         ↑ IMPORTA EXCEL
         <input type="file" id="import-excel" accept=".xlsx,.xls" style="display:none" onchange="importaExcel(this)">
       </label>
+      <button onclick="pulisciForm()" style="background:linear-gradient(135deg,#7aaa1a,#5d8a10);color:white;border:none;border-radius:10px;padding:15px 32px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(149,194,47,0.35);transition:all 0.2s">&#128465; PULISCI</button>
       <button class="btn-submit" onclick="submitForm()">
         ▶ INVIA RAPPORTO DI SOPRALLUOGO
       </button>
@@ -2009,29 +2010,7 @@ function ripopolaForm(dati) {
   });
 
   // Toggle checklist
-  Object.keys(dati).forEach(function(k) {
-    if (k.indexOf('checklist_') === 0) {
-      var stateKey = k.replace('checklist_', '');
-      var val = dati[k];
-      if (!val) return;
-      togStates[stateKey] = val;
-      // Trova il pulsante corrispondente e attivalo
-      document.querySelectorAll('.toggle-group').forEach(function(grp) {
-        var btn = grp.closest('tr');
-        if (!btn) return;
-        var voce = btn.querySelector('td:first-child');
-        if (!voce) return;
-        // Cerca il toggle giusto per questa voce
-        grp.querySelectorAll('.tog').forEach(function(t) {
-          if (t.classList.contains(val)) {
-            t.classList.add('active');
-          } else {
-            t.classList.remove('active');
-          }
-        });
-      });
-    }
-  });
+  attivaToggleDaImport(dati);
 
   // Validazione CF/PIVA dopo import
   ['piva_committente','piva_1','piva_2','piva_3','piva_4','piva_5'].forEach(function(name) {
@@ -2042,6 +2021,70 @@ function ripopolaForm(dati) {
   // Scroll in cima
   window.scrollTo({ top: 0, behavior: 'smooth' });
   updateProgress();
+}
+
+
+// ========== PULISCI FORM ==========
+function pulisciForm() {
+  if (!confirm('Cancellare tutti i dati inseriti?')) return;
+  document.querySelectorAll('.field-input, .field-select, .field-textarea, .note-inline').forEach(function(el) { el.value = ''; });
+  document.querySelectorAll('.radio-btn').forEach(function(btn) {
+    btn.classList.remove('selected');
+    var inp = btn.querySelector('input'); if (inp) inp.checked = false;
+  });
+  document.querySelectorAll('#fasi-group .checkbox-item').forEach(function(item) {
+    item.classList.remove('checked');
+    var inp = item.querySelector('input'); if (inp) inp.checked = false;
+  });
+  document.querySelectorAll('.cert-chip').forEach(function(c) { c.classList.remove('selected'); });
+  document.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
+  for (var k in togStates) { togStates[k] = null; }
+  ['foto-privacy','foto-cantiere1','foto-cantiere2'].forEach(function(id) {
+    var inp = document.getElementById(id); if (inp) inp.value = '';
+    var sid = id.replace('foto-','');
+    var wrap = document.getElementById('preview-' + sid);
+    if (wrap) wrap.innerHTML = '<div class="foto-placeholder"><span class="foto-icon">&#128247;</span><span class="foto-label">Carica foto</span></div>';
+  });
+  document.querySelectorAll('.cf-feedback').forEach(function(fb) { fb.textContent = ''; fb.className = 'cf-feedback'; });
+  var btn = document.querySelector('.btn-submit');
+  if (btn) { btn.disabled = false; btn.textContent = '\u25b6 INVIA RAPPORTO DI SOPRALLUOGO'; btn.style.background = ''; }
+  document.getElementById('success-msg').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
+}
+
+// ========== FIX TOGGLE IMPORT ==========
+var togLabelMap = { 'VERIF.': 'verif', 'NC+': 'ncplus', 'NC-': 'ncminus', 'OSS': 'oss', 'NA': 'na',
+                    'verif': 'verif', 'ncplus': 'ncplus', 'ncminus': 'ncminus', 'oss': 'oss', 'na': 'na' };
+
+function attivaToggleDaImport(dati) {
+  document.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
+  for (var sk in togStates) { togStates[sk] = null; }
+  Object.keys(dati).forEach(function(k) {
+    if (k.indexOf('checklist_') !== 0) return;
+    var val = String(dati[k] || '').trim();
+    if (!val) return;
+    var cssClass = togLabelMap[val];
+    if (!cssClass) return;
+    var inner = k.replace('checklist_', '');
+    document.querySelectorAll('tbody tr').forEach(function(tr) {
+      var td = tr.querySelector('td:first-child');
+      if (!td) return;
+      var voceText = td.textContent.trim();
+      if (inner.length > voceText.length && inner.indexOf(voceText) !== -1 && inner[inner.length - voceText.length - 1] === '_') {
+        var grp = tr.querySelector('.toggle-group');
+        if (!grp) return;
+        grp.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
+        var target = grp.querySelector('.tog.' + cssClass);
+        if (target) {
+          target.classList.add('active');
+          for (var sk in togStates) {
+            if (sk.split('|').pop() === voceText) { togStates[sk] = cssClass; break; }
+          }
+        }
+      }
+    });
+  });
 }
 
 // START
