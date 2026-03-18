@@ -451,6 +451,12 @@ body {
 .submit-note { font-size: 12px; color: var(--grigio-light); text-align: center; }
 
 
+
+/* CF/PIVA FEEDBACK */
+.cf-feedback { font-size: 11px; font-weight: 600; margin-top: 3px; min-height: 14px; }
+.cf-ok  { color: var(--verde-dark); }
+.cf-err { color: var(--nc-plus); }
+
 /* FOTO UPLOAD */
 .foto-upload-box {
   border: 2px dashed var(--bordo);
@@ -520,6 +526,7 @@ body {
   .fields-grid, .fields-grid-3 { grid-template-columns: 1fr; }
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -579,7 +586,7 @@ body {
         <div class="fields-grid">
           <div class="field-group">
             <label class="field-label">Email tecnico<span class="req">*</span></label>
-            <input type="email" class="field-input" name="email" placeholder="tecnico@formedilpadova.it">
+            <input type="email" class="field-input" name="email" placeholder="nome.cognome@did.scuolaedilepadova.net">
           </div>
           <div class="field-group">
             <label class="field-label">Data sopralluogo<span class="req">*</span></label>
@@ -763,7 +770,7 @@ body {
           </div>
           <div class="field-group">
             <label class="field-label">CF / P.IVA committente</label>
-            <input type="text" class="field-input" name="piva_committente" placeholder="CODFISC o P.IVA">
+            <input type="text" class="field-input" name="piva_committente" placeholder="CODFISC o P.IVA" oninput="validaCFPIVA(this)" maxlength="16"><div class="cf-feedback" id="fb-piva_committente"></div>
           </div>
           <div class="field-group">
             <label class="field-label">E-mail committente</label>
@@ -1244,9 +1251,15 @@ body {
 
     <!-- SUBMIT -->
     <div class="submit-area">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%">
+      <label class="btn-import" style="background:linear-gradient(135deg,var(--grigio),#3a3f48);color:white;border:none;border-radius:10px;padding:15px 32px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(86,92,102,0.35);display:flex;align-items:center;gap:8px;transition:all 0.2s" title="Importa una visita precedente da file Excel">
+        ↑ IMPORTA EXCEL
+        <input type="file" id="import-excel" accept=".xlsx,.xls" style="display:none" onchange="importaExcel(this)">
+      </label>
       <button class="btn-submit" onclick="submitForm()">
         ▶ INVIA RAPPORTO DI SOPRALLUOGO
       </button>
+      </div>
       <div class="spinner" id="spinner"></div>
       <div class="success-msg" id="success-msg">
         ✅ Rapporto inviato correttamente al foglio Google!<br>
@@ -1817,6 +1830,7 @@ async function submitForm() {
       successMsg.style.display = 'block';
       btn.textContent = '✓ INVIATO';
       btn.style.background = 'var(--verde)';
+      esportaExcel(payload);
     }
   } catch(err) {
     spinner.style.display = 'none';
@@ -1855,6 +1869,179 @@ function removeFoto(e, inputId, previewId) {
   document.getElementById(inputId).value = '';
   var wrap = document.getElementById(previewId);
   wrap.innerHTML = '<div class="foto-placeholder"><span class="foto-icon">\ud83d\udcf7</span><span class="foto-label">Carica foto</span></div>';
+}
+
+
+// ========== VALIDAZIONE CF / P.IVA ==========
+function validaCFPIVA(input) {
+  var val = input.value.trim().toUpperCase();
+  input.value = val;
+  var fb = document.getElementById('fb-' + input.name);
+  if (!fb) return;
+  if (val === '') { fb.textContent = ''; fb.className = 'cf-feedback'; return; }
+  if (val.length === 11 && /^\d{11}$/.test(val)) {
+    fb.textContent = '✓ Partita IVA valida'; fb.className = 'cf-feedback cf-ok';
+  } else if (val.length === 16 && /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(val)) {
+    fb.textContent = '✓ Codice Fiscale valido'; fb.className = 'cf-feedback cf-ok';
+  } else if (val.length < 11) {
+    fb.textContent = 'Inserire CF (16 car.) o P.IVA (11 cifre)'; fb.className = 'cf-feedback cf-err';
+  } else {
+    fb.textContent = '✗ Formato non valido'; fb.className = 'cf-feedback cf-err';
+  }
+}
+
+// ========== EXPORT EXCEL ==========
+function esportaExcel(dati) {
+  try {
+    // Costruisce un array piatto chiave→valore
+    var rigaChiavi = [];
+    var rigaValori = [];
+    Object.keys(dati).forEach(function(k) {
+      rigaChiavi.push(k);
+      rigaValori.push(dati[k]);
+    });
+    // Aggiunge stati toggle checklist
+    Object.keys(togStates).forEach(function(k) {
+      if (togStates[k]) {
+        rigaChiavi.push('checklist_' + k);
+        rigaValori.push(togStates[k]);
+      }
+    });
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet([rigaChiavi, rigaValori]);
+    // Larghezza colonne automatica
+    ws['!cols'] = rigaChiavi.map(function() { return { wch: 28 }; });
+    XLSX.utils.book_append_sheet(wb, ws, 'Sopralluogo');
+    // Nome file con data e codice cantiere
+    var codice = dati.codice_cantiere || 'cantiere';
+    var data = dati.data_sopralluogo || new Date().toISOString().slice(0,10);
+    var nomeFile = 'Sopralluogo_' + codice + '_' + data + '.xlsx';
+    XLSX.writeFile(wb, nomeFile);
+  } catch(err) {
+    console.error('Errore export Excel:', err);
+  }
+}
+
+// ========== IMPORT EXCEL ==========
+function importaExcel(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, { type: 'array' });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      if (rows.length < 2) { alert('File Excel vuoto o non valido.'); return; }
+      var keys   = rows[0];
+      var values = rows[1];
+      var dati = {};
+      keys.forEach(function(k, i) { dati[k] = values[i] || ''; });
+      ripopolaForm(dati);
+      alert('✅ Dati importati correttamente!\nPuoi modificare i campi e inviare come nuova visita.');
+    } catch(err) {
+      alert('Errore lettura file Excel: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+  // Reset input per permettere reimport stesso file
+  input.value = '';
+}
+
+function ripopolaForm(dati) {
+  // Campi input/select/textarea standard
+  Object.keys(dati).forEach(function(name) {
+    var val = dati[name];
+    if (!val && val !== 0) return;
+    // Campi normali
+    var el = document.querySelector('[name="' + name + '"]');
+    if (el) {
+      if (el.tagName === 'SELECT') {
+        var opts = el.options;
+        for (var i = 0; i < opts.length; i++) {
+          if (opts[i].value === val || opts[i].text === val) {
+            el.selectedIndex = i; break;
+          }
+        }
+      } else if (el.type !== 'radio' && el.type !== 'checkbox' && el.type !== 'file') {
+        el.value = val;
+      }
+    }
+    // Radio buttons
+    var radios = document.querySelectorAll('[name="' + name + '"]');
+    radios.forEach(function(r) {
+      if (r.type === 'radio' && (r.value === val || r.value === String(val))) {
+        r.checked = true;
+        var btn = r.closest('.radio-btn');
+        if (btn) {
+          var grp = btn.closest('.radio-group');
+          if (grp) grp.querySelectorAll('.radio-btn').forEach(function(b) { b.classList.remove('selected'); });
+          btn.classList.add('selected');
+        }
+      }
+    });
+  });
+
+  // Fasi lavorazione (campo pipe-separated)
+  if (dati.fasi_lavorazione) {
+    var fasi = dati.fasi_lavorazione.split(' | ');
+    document.querySelectorAll('#fasi-group .checkbox-item').forEach(function(item) {
+      var inp = item.querySelector('input');
+      if (fasi.indexOf(inp.value) !== -1) {
+        item.classList.add('checked');
+        inp.checked = true;
+      } else {
+        item.classList.remove('checked');
+        inp.checked = false;
+      }
+    });
+  }
+
+  // Certificazioni imprese
+  [1,2,3,4,5].forEach(function(n) {
+    var key = 'certificazioni_' + n;
+    if (!dati[key]) return;
+    var certSel = dati[key].split(', ');
+    var grp = document.getElementById('cert-' + n + '-group');
+    if (!grp) return;
+    grp.querySelectorAll('.cert-chip').forEach(function(chip) {
+      chip.classList.toggle('selected', certSel.indexOf(chip.textContent.trim()) !== -1);
+    });
+  });
+
+  // Toggle checklist
+  Object.keys(dati).forEach(function(k) {
+    if (k.indexOf('checklist_') === 0) {
+      var stateKey = k.replace('checklist_', '');
+      var val = dati[k];
+      if (!val) return;
+      togStates[stateKey] = val;
+      // Trova il pulsante corrispondente e attivalo
+      document.querySelectorAll('.toggle-group').forEach(function(grp) {
+        var btn = grp.closest('tr');
+        if (!btn) return;
+        var voce = btn.querySelector('td:first-child');
+        if (!voce) return;
+        // Cerca il toggle giusto per questa voce
+        grp.querySelectorAll('.tog').forEach(function(t) {
+          if (t.classList.contains(val)) {
+            t.classList.add('active');
+          } else {
+            t.classList.remove('active');
+          }
+        });
+      });
+    }
+  });
+
+  // Validazione CF/PIVA dopo import
+  ['piva_committente','piva_1','piva_2','piva_3','piva_4','piva_5'].forEach(function(name) {
+    var el = document.querySelector('[name="' + name + '"]');
+    if (el && el.value) validaCFPIVA(el);
+  });
+
+  // Scroll in cima
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
 }
 
 // START
