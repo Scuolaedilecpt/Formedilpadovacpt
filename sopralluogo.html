@@ -1816,6 +1816,9 @@ async function submitForm() {
   payload['foto_cantiere1'] = fotoCantiere1Data;
   payload['foto_cantiere2'] = fotoCantiere2Data;
 
+  // Salva Excel SUBITO prima dell'invio — sempre garantito
+  esportaExcel(payload);
+
   try {
     {
       // Apps Script con no-cors: usa URLSearchParams come il modulo Google
@@ -1831,7 +1834,6 @@ async function submitForm() {
       successMsg.style.display = 'block';
       btn.textContent = '✓ INVIATO';
       btn.style.background = 'var(--verde)';
-      esportaExcel(payload);
     }
   } catch(err) {
     spinner.style.display = 'none';
