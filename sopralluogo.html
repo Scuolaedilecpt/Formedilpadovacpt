@@ -1944,7 +1944,7 @@ function updateProgress() {
 document.addEventListener('input', updateProgress);
 
 // ==================== SUBMIT ====================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpEEWQ7kT-LZoS78gqDB8c1UXlzxThk4uqETD9XX2RsCaxSQARS2_h3H7nAagXRM-hvA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP2FvCyxrS03kUwZS1zNyy4bI-_XNe-vmUp8A6Xeze6uz2ljkioqUEnyIlwpkiZvI9vA/exec'; // ← aggiorna con URL SopralluogoUnificato
 
 function collectData() {
   const data = {};
@@ -2036,7 +2036,7 @@ async function submitForm() {
 
   try {
     {
-      // Apps Script con no-cors: usa URLSearchParams come il modulo Google
+      // Invia dati testuali (senza foto — foto già caricate da Codice.gs)
       var params = new URLSearchParams();
       params.append('data', JSON.stringify(payload));
       await fetch(SCRIPT_URL, {
@@ -2045,7 +2045,8 @@ async function submitForm() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
       });
-      spinner.style.display = 'none';
+
+            spinner.style.display = 'none';
       successMsg.style.display = 'block';
       btn.textContent = '✓ INVIATO';
       btn.style.background = 'var(--verde)';
