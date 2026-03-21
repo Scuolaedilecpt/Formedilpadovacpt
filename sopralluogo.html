@@ -2296,10 +2296,12 @@ function esportaExcel(dati) {
       rigaValori.push(val !== undefined && val !== null ? String(val) : '');
     });
 
-    // Aggiunge stati toggle checklist (da togStates, fonte più affidabile)
+    // Aggiunge stati toggle checklist (usa stessa normalizzazione di collectData)
     Object.keys(togStates).forEach(function(k) {
       if (togStates[k]) {
-        var togKey = 'checklist_' + k.replace(/[|.]/g, '_');
+        // Stessa trasformazione di collectData per coerenza con l'import
+        var cleanKey = k.replace(/[|."'()\[\]]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, '').toLowerCase();
+        var togKey = 'checklist_' + cleanKey;
         // Evita duplicati
         if (rigaChiavi.indexOf(togKey) === -1) {
           rigaChiavi.push(togKey);
@@ -2354,8 +2356,11 @@ function ripopolaForm(dati) {
   Object.keys(dati).forEach(function(name) {
     var val = dati[name];
     if (!val && val !== 0) return;
+    // Salta le checklist — gestite da attivaToggleDaImport
+    if (name.indexOf('checklist_') === 0 || name === 'timestamp') return;
     // Campi normali
-    var el = document.querySelector('[name="' + name + '"]');
+    var el;
+    try { el = document.querySelector('[name="' + name + '"]'); } catch(e) { return; }
     if (el) {
       if (el.tagName === 'SELECT') {
         var opts = el.options;
@@ -2474,34 +2479,41 @@ var togLabelMap = { 'VERIF.': 'verif', 'NC+': 'ncplus', 'NC-': 'ncminus', 'OSS':
                     'verif': 'verif', 'ncplus': 'ncplus', 'ncminus': 'ncminus', 'oss': 'oss', 'na': 'na' };
 
 function attivaToggleDaImport(dati) {
-  // calcolaIPC() viene chiamato alla fine
+  // Reset tutti i toggle
   document.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
   for (var sk in togStates) { togStates[sk] = null; }
+
+  // Costruisce una mappa: chiave_normalizzata → toggle-group DOM
+  // chiave_normalizzata = data-key normalizzato (lowercase, speciali→_)
+  var gruppiMap = {};
+  document.querySelectorAll('.toggle-group[data-key]').forEach(function(grp) {
+    var dk = grp.getAttribute('data-key') || '';
+    // Normalizza uguale a collectData: replace speciali, lowercase
+    var norm = dk.replace(/[|."'()\[\]\/]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, '').toLowerCase();
+    gruppiMap[norm] = grp;
+  });
+
+  // Per ogni chiave checklist nel payload
   Object.keys(dati).forEach(function(k) {
     if (k.indexOf('checklist_') !== 0) return;
     var val = String(dati[k] || '').trim();
     if (!val) return;
     var cssClass = togLabelMap[val];
     if (!cssClass) return;
-    var inner = k.replace('checklist_', '');
-    document.querySelectorAll('tbody tr').forEach(function(tr) {
-      var td = tr.querySelector('td:first-child');
-      if (!td) return;
-      var voceText = td.textContent.trim();
-      if (inner.length > voceText.length && inner.indexOf(voceText) !== -1 && inner[inner.length - voceText.length - 1] === '_') {
-        var grp = tr.querySelector('.toggle-group');
-        if (!grp) return;
-        grp.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
-        var target = grp.querySelector('.tog.' + cssClass);
-        if (target) {
-          target.classList.add('active');
-          for (var sk in togStates) {
-            if (sk.split('|').pop() === voceText) { togStates[sk] = cssClass; break; }
-          }
-        }
-      }
-    });
+    var inner = k.replace('checklist_', ''); // es: "02_0_stabilità"
+    var grp = gruppiMap[inner];
+    if (!grp) return;
+    // Attiva il button corretto
+    grp.querySelectorAll('.tog').forEach(function(t) { t.classList.remove('active'); });
+    var target = grp.querySelector('.tog.' + cssClass);
+    if (target) {
+      target.classList.add('active');
+      var dataKey = grp.getAttribute('data-key');
+      if (dataKey) togStates[dataKey] = cssClass;
+    }
   });
+  updateProgress();
+  calcolaIPC();
 }
 
 // START
