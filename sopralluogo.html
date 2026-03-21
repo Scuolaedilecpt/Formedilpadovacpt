@@ -1992,7 +1992,7 @@ function collectData() {
     if (val) {
       // Rimuove caratteri speciali dalla chiave: | . " ' ( ) [ ]
       var cleanKey = key.replace(/[|."'()\[\]]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-      data['checklist_' + cleanKey] = val;
+      data['checklist_' + cleanKey.toLowerCase()] = val;
     }
   });
   data['timestamp'] = new Date().toLocaleString('it-IT');
