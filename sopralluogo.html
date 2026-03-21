@@ -338,7 +338,15 @@ body {
   padding: 8px 6px; text-align: center;
 }
 .checklist-table th:first-child { text-align: left; padding-left: 10px; }
-.checklist-thead { background: var(--grigio); }
+.btn-tutto-verif {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--verde); color: white; border: none;
+    border-radius: 6px; padding: 4px 11px; font-size: 11px;
+    font-weight: 600; cursor: pointer; margin-bottom: 6px;
+    opacity: 0.85; transition: opacity .15s;
+  }
+  .btn-tutto-verif:hover { opacity: 1; }
+  .checklist-thead { background: var(--grigio); }
 .checklist-table tr:nth-child(even) { background: #fafbfc; }
 .checklist-table tr:hover { background: #f0f2f5; }
 .checklist-table td {
@@ -350,6 +358,26 @@ body {
 .checklist-table td:first-child { padding-left: 10px; color: var(--testo); font-weight: 500; }
 
 /* Toggle pill group */
+.btn-tutto-verif {
+  background: none;
+  border: 1.5px solid var(--verde);
+  color: var(--verde);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+}
+.btn-tutto-verif:hover {
+  background: var(--verde);
+  color: #fff;
+}
+.btn-tutto-verif.tutto-verif-attivo {
+  background: var(--verde);
+  color: #fff;
+}
 .toggle-group {
   display: flex; gap: 3px;
   justify-content: center;
@@ -1030,7 +1058,7 @@ body {
         <div class="sub-section-title">01.01 Logistica</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0101')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0101"></tbody>
         </table>
@@ -1044,7 +1072,7 @@ body {
         <div class="sub-section-title">01.02 Apprestamenti igienico-sanitari e di sicurezza</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0102')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0102"></tbody>
         </table>
@@ -1058,7 +1086,7 @@ body {
         <div class="sub-section-title">01.03 Impianti elettrici</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0103')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0103"></tbody>
         </table>
@@ -1072,7 +1100,7 @@ body {
         <div class="sub-section-title">01.04 Agibilità del cantiere</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0104')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0104"></tbody>
         </table>
@@ -1086,7 +1114,7 @@ body {
         <div class="sub-section-title">01.05 Organizzazione del lavoro</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0105')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0105"></tbody>
         </table>
@@ -1100,7 +1128,7 @@ body {
         <div class="sub-section-title">01.06 Segnaletica</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0106')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0106"></tbody>
         </table>
@@ -1114,7 +1142,7 @@ body {
         <div class="sub-section-title">01.07 Condizioni al contorno</div>
         <table class="checklist-table">
           <thead class="checklist-thead"><tr>
-            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th>
+            <th>Voce</th><th>VERIF.</th><th>NC+</th><th>NC-</th><th>OSS</th><th>NA</th><th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'tb-0107')" title="Tutto VERIF.">✓</button></th>
           </tr></thead>
           <tbody id="tb-0107"></tbody>
         </table>
@@ -1669,6 +1697,8 @@ function buildImpresaPanel(idx) {
 // ==================== BUILD CHECKLIST TABLE ====================
 function buildChecklistTable(code, voci, noteField) {
   const key = code.replace('.','');
+  const tableId = `tb-${key}`;
+  const btnTuttoVerif = `<button class="btn-tutto-verif" onclick="setTuttoVerif(this,'${tableId}')">✓ Tutto VERIF.</button>`;
   let rows = voci.map(v => {
     const stateKey = `${key}|${v}`;
     return `<tr>
@@ -1693,11 +1723,14 @@ function buildSection(secCode, container) {
   secNames.forEach((sname, si) => {
     const voci = sections[sname];
     const noteId = `note_${secCode}_${si}`;
-    html += `
+          const tableId2 = `tbs-${secCode}-${si}`;
+      html += `
       <div class="sub-section-title">${sname}</div>
-      <table class="checklist-table">
+      <button class="btn-tutto-verif" onclick="setTuttoVerif(this,'${tableId2}')">✓ Tutto VERIF.</button>
+      <table class="checklist-table" id="${tableId2}">
         <thead class="checklist-thead"><tr>
           <th>Voce</th><th colspan="5">Valutazione</th>
+          <th><button class="btn-tutto-verif" onclick="setTuttoVerif(this,'${tableId2}')" title="Tutto VERIF.">✓</button></th>
         </tr></thead>
         <tbody>
           ${voci.map(v => {
@@ -1871,6 +1904,65 @@ function calcolaIPC() {
 
 
 // ==================== TOGGLE STATES ====================
+// Imposta tutte le voci di una sezione su VERIF.
+function setTuttoVerif(btn) {
+  const sezione = btn.closest('.checklist-section, tbody, .section-body, table');
+  // Cerca tutti i toggle-group nella sezione corrente
+  const container = btn.parentElement;
+  let target = container;
+  // Risale fino a trovare un contenitore della sezione (table o section-block)
+  let el = btn.parentElement;
+  while (el && !el.classList.contains('section-block') && !el.tagName.match(/^TABLE$/i) && el.tagName !== 'TBODY') {
+    el = el.parentElement;
+    if (!el || el.tagName === 'BODY') break;
+  }
+  const groups = (el || container).querySelectorAll('.toggle-group');
+  groups.forEach(grp => {
+    const key = grp.getAttribute('data-key');
+    if (!key) return;
+    const allBtns = grp.querySelectorAll('.tog');
+    allBtns.forEach(b => b.classList.remove('active'));
+    const verifBtn = grp.querySelector('.tog.verif');
+    if (verifBtn) verifBtn.classList.add('active');
+    togStates[key] = 'verif';
+  });
+  updateProgress();
+  calcolaIPC();
+}
+
+// Imposta tutte le voci di una sezione su VERIF.
+function setTuttoVerif(btn) {
+  const table = btn.closest('table');
+  if (!table) return;
+  table.querySelectorAll('.toggle-group').forEach(grp => {
+    const key = grp.getAttribute('data-key');
+    if (!key) return;
+    grp.querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+    const verifBtn = grp.querySelector('.tog.verif');
+    if (verifBtn) verifBtn.classList.add('active');
+    togStates[key] = 'verif';
+  });
+  btn.classList.add('tutto-verif-active');
+  updateProgress();
+  calcolaIPC();
+}
+
+// Imposta tutte le voci di una sezione su VERIF.
+function setTuttoVerif(btn) {
+  const table = btn.closest('table');
+  if (!table) return;
+  table.querySelectorAll('.toggle-group').forEach(grp => {
+    const key = grp.getAttribute('data-key');
+    if (!key) return;
+    grp.querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+    grp.querySelector('.tog.verif').classList.add('active');
+    togStates[key] = 'verif';
+  });
+  btn.classList.add('tutto-verif-active');
+  updateProgress();
+  calcolaIPC();
+}
+
 function setTog(btn, key, val) {
   const grp = btn.parentElement;
   const allBtns = grp.querySelectorAll('.tog');
@@ -1888,12 +1980,63 @@ function setTog(btn, key, val) {
 }
 
 // Versione che legge la chiave dal data-key del gruppo padre
-// (usata per voci con caratteri speciali come virgolette)
 function setTogBtn(btn, val) {
   const grp = btn.parentElement;
   const key = grp.getAttribute('data-key');
   if (!key) return;
   setTog(btn, key, val);
+}
+
+// Imposta tutte le voci di una sezione su VERIF. (o deseleziona se già tutte verif)
+function setTuttoVerif(btn, tableId) {
+  // Funziona sia con <table> che con <tbody>
+  let container = document.getElementById(tableId);
+  if (!container) return;
+  // Se è un tbody, usa il suo contenuto
+  const groups = container.querySelectorAll('.toggle-group');
+  // Controlla se tutte sono già su verif
+  const tutteVerif = Array.from(groups).every(g => {
+    const key = g.getAttribute('data-key');
+    return togStates[key] === 'verif';
+  });
+  groups.forEach(g => {
+    const key = g.getAttribute('data-key');
+    const verifBtn = g.querySelector('.tog.verif');
+    const allBtns = g.querySelectorAll('.tog');
+    if (tutteVerif) {
+      // Deseleziona tutto
+      allBtns.forEach(b => b.classList.remove('active'));
+      togStates[key] = null;
+    } else {
+      // Imposta verif
+      allBtns.forEach(b => b.classList.remove('active'));
+      if (verifBtn) verifBtn.classList.add('active');
+      togStates[key] = 'verif';
+    }
+  });
+  btn.classList.toggle('tutto-verif-attivo', !tutteVerif);
+  btn.textContent = tutteVerif ? '✓ Tutto VERIF.' : '✗ Deseleziona';
+  updateProgress();
+  calcolaIPC();
+}
+
+// Imposta tutte le voci di una sezione su VERIF.
+function setAllVerif(btn) {
+  const table = btn.closest('table');
+  if (!table) return;
+  table.querySelectorAll('.toggle-group').forEach(grp => {
+    const key = grp.getAttribute('data-key');
+    if (!key) return;
+    const verifBtn = grp.querySelector('.tog.verif');
+    if (!verifBtn) return;
+    // Simula click solo se non già attivo
+    const allBtns = grp.querySelectorAll('.tog');
+    allBtns.forEach(b => b.classList.remove('active'));
+    verifBtn.classList.add('active');
+    togStates[key] = 'verif';
+  });
+  updateProgress();
+  calcolaIPC();
 }
 
 // ==================== CHECKBOX ====================
